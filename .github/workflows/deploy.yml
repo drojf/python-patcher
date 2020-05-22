@@ -26,6 +26,8 @@ jobs:
       # Run Python Deploy Script
       - name: Run Deploy Script
         run: |
+          rustup target add i686-pc-windows-msvc
+          rustup default stable-i686-pc-windows-msvc
           python travis_build_script.py
 
       # Upload Artifact
@@ -69,11 +71,6 @@ jobs:
           name: windows-loader-exe
           path: travis_installer_output
 
-      # Display the current folder structure
-      - name: Display structure of downloaded files 1
-        run: ls -R
-        working-directory: .
-
       # Publish a release
       # For more info on options see: https://github.com/softprops/action-gh-release
       - name: Release
@@ -88,41 +85,3 @@ jobs:
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Install Dependencies (no dependencies require at the moment)
-  #    - name: Install dependencies
-  #      run: |
-  #        sudo apt-get install -y p7zip-full #p7zip is already installed!
-  #        python -m pip install --upgrade pip
-  #        pip install -r requirements.txt
-
-    # Replace below two actions with https://github.com/softprops/action-gh-release ?
-    # Will allow uploading multiple files
-
-    # Create the release
-#    - name: Create Release
-#      id: create_release
-#      uses: actions/create-release@latest
-#      env:
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      with:
-#        tag_name: ${{ github.ref }}
-#        release_name: Tsumihoroboshi Patch Traduction Française ${{ github.ref }}
-#        body: |
-#          Cette version du patch est mise à jour pour être compatible avec les récents changements dans la branche anglaise.
-#
-#          Example body goes here.
-#        draft: true
-#        prerelease: false
-#
-#    # Upload the release
-#    - name: Upload Release Asset
-#      id: upload-release-asset
-#      uses: actions/upload-release-asset@v1
-#      env:
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      with:
-#        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-#        asset_path: ./07th-mod-french-patch-staging/built_release.7z
-#        asset_name: Tsumihoroboshi.Patch.FR.${{ github.ref }}.7z
-#        asset_content_type: application/x-7z-compressed
