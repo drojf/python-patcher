@@ -1,0 +1,119 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+# For more info on Actions used, see:
+# https://github.com/actions/create-release
+# https://github.com/actions/upload-release-asset
+
+name: Deploy
+
+# Run this workflow when any tag is pushed
+# Can set custom wildcards instead of '*', like 'v*' for tags starting with v
+on:
+  push:
+    tags:
+      - '*'
+# To share data between jobs (between VMs): https://help.github.com/en/actions/configuring-and-managing-workflows/persisting-workflow-data-using-artifacts#passing-data-between-jobs-in-a-workflow
+jobs:
+  # Windows Build
+  windows_build:
+    name: Windows Build
+    runs-on: windows-latest
+    steps:
+      # Download the repository
+      - uses: actions/checkout@v2
+
+      # Run Python Deploy Script
+      - name: Run Deploy Script
+        run: |
+          python travis_build_script.py
+
+      # Upload Artifact
+      - name: Upload Windows Build
+        uses: actions/upload-artifact@v1
+        with:
+          name: windows-loader-exe
+          path: travis_installer_output/07th-Mod.Installer.Windows.exe
+
+  # Linux/Mac Build
+  linux_mac_build:
+    name: Linux and Mac Build
+    needs: windows_build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+
+    steps:
+      # Download the repository
+      - uses: actions/checkout@v2
+
+      # Setup Python
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Run Python Deploy Script
+      - name: Run Deploy Script
+        run: python travis_build_script.py
+
+      - name: Validate JSON
+        run: bash travis_validate_json.sh
+
+      # Download windows .exe artifact
+      - name: Download Windows .exe artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: windows-loader-exe
+          path: travis_installer_output/07th-Mod.Installer.Windows.exe
+
+      # Publish a release
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') # only publish tagged commits
+        with:
+          files: |
+            travis_installer_output/07th-Mod.Installer.Windows.exe
+            travis_installer_output/07th-Mod.Installer.mac.zip
+            travis_installer_output/07th-Mod.Installer.linux.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Install Dependencies (no dependencies require at the moment)
+  #    - name: Install dependencies
+  #      run: |
+  #        sudo apt-get install -y p7zip-full #p7zip is already installed!
+  #        python -m pip install --upgrade pip
+  #        pip install -r requirements.txt
+
+    # Replace below two actions with https://github.com/softprops/action-gh-release ?
+    # Will allow uploading multiple files
+
+    # Create the release
+#    - name: Create Release
+#      id: create_release
+#      uses: actions/create-release@latest
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#        tag_name: ${{ github.ref }}
+#        release_name: Tsumihoroboshi Patch Traduction Française ${{ github.ref }}
+#        body: |
+#          Cette version du patch est mise à jour pour être compatible avec les récents changements dans la branche anglaise.
+#
+#          Example body goes here.
+#        draft: true
+#        prerelease: false
+#
+#    # Upload the release
+#    - name: Upload Release Asset
+#      id: upload-release-asset
+#      uses: actions/upload-release-asset@v1
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+#        asset_path: ./07th-mod-french-patch-staging/built_release.7z
+#        asset_name: Tsumihoroboshi.Patch.FR.${{ github.ref }}.7z
+#        asset_content_type: application/x-7z-compressed
