@@ -1,19 +1,17 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-# For more info on Actions used, see:
-# https://github.com/actions/create-release
-# https://github.com/actions/upload-release-asset
+# Useful Links
+# Python with Github Actions: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
 name: Deploy
 
-# Run this workflow when any tag is pushed
+# Uncomment to run this workflow only when a tag is pushed
 # Can set custom wildcards instead of '*', like 'v*' for tags starting with v
-on:
-  push:
-    tags:
-      - '*'
-# To share data between jobs (between VMs): https://help.github.com/en/actions/configuring-and-managing-workflows/persisting-workflow-data-using-artifacts#passing-data-between-jobs-in-a-workflow
+# NOTE: Releases are only published on tags, see "Release" step below
+#on:
+#  push:
+#    tags:
+#      - '*'
+
+# Docs on sharing data between jobs (between VMs): https://help.github.com/en/actions/configuring-and-managing-workflows/persisting-workflow-data-using-artifacts#passing-data-between-jobs-in-a-workflow
 jobs:
   # Windows Build
   windows_build:
@@ -23,12 +21,15 @@ jobs:
       # Download the repository
       - uses: actions/checkout@v2
 
-      # Run Python Deploy Script
-      - name: Run Deploy Script
+      # Configure Rust for 32-bit builds
+      - name: Configure Rust for 32-bit
         run: |
           rustup target add i686-pc-windows-msvc
           rustup default stable-i686-pc-windows-msvc
-          python travis_build_script.py
+
+      # Run Python Deploy Script
+      - name: Run Deploy Script
+        run: python travis_build_script.py
 
       # Upload Artifact
       - name: Upload Windows Build
