@@ -67,7 +67,7 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: windows-loader-exe
-          path: ./07th-Mod.Installer.Windows.exe
+          path: travis_installer_output
 
       # Display the current folder structure
       - name: Display structure of downloaded files 1
@@ -83,16 +83,11 @@ jobs:
           files: |
             travis_installer_output/07th-Mod.Installer.mac.zip
             travis_installer_output/07th-Mod.Installer.linux.tar.gz
-            ./07th-Mod.Installer.Windows.exe
+            travis_installer_output/07th-Mod.Installer.Windows.exe
           body_path: github_actions_changelog_template.txt
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Display the current folder structure
-      - name: Display structure of downloaded files 2
-        run: ls -R
-        working-directory: .
 
       # Install Dependencies (no dependencies require at the moment)
   #    - name: Install dependencies
