@@ -54,19 +54,20 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # Run JSON Validation script
+      - name: Validate JSON
+        run: bash travis_validate_json.sh
+
       # Run Python Deploy Script
       - name: Run Deploy Script
         run: python travis_build_script.py
-
-      - name: Validate JSON
-        run: bash travis_validate_json.sh
 
       # Download windows .exe artifact
       - name: Download Windows .exe artifact
         uses: actions/download-artifact@v1
         with:
           name: windows-loader-exe
-          path: 07th-Mod.Installer.Windows.exe
+          path: /tmp/07th-Mod.Installer.Windows.exe
 
       # Publish a release
       # For more info on options see: https://github.com/softprops/action-gh-release
@@ -75,9 +76,9 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/') # only publish tagged commits
         with:
           files: |
-            07th-Mod.Installer.Windows.exe
             travis_installer_output/07th-Mod.Installer.mac.zip
             travis_installer_output/07th-Mod.Installer.linux.tar.gz
+            /tmp/07th-Mod.Installer.Windows.exe
           body_path: github_actions_changelog_template.txt
           draft: true
         env:
