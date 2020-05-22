@@ -15,6 +15,8 @@ from urllib.request import urlopen
 
 print("--- Running 07th-Mod Installer Build using Python {} ---".format(sys.version))
 
+GIT_TAG = os.environ.get("GITHUB_REF")
+
 BUILD_LINUX_MAC = True
 # If user specified which platform to build for, use that platform. Otherwise, attempt to detect platform automatically.
 if len(sys.argv) == 2:
@@ -136,7 +138,7 @@ shutil.copytree('.', staging_folder, ignore=ignore_filter)
 # Save the build information in the staging folder. Will later be read by installer.
 with open(os.path.join(staging_folder, 'build_info.txt'), 'w', encoding='utf-8') as build_info_file:
 	build_info_file.write(f'Build Date: {datetime.datetime.now()}\n')
-	build_info_file.write(f'Git Tag (Version): {os.environ.get("TRAVIS_TAG")}\n')
+	build_info_file.write(f'Git Tag (Version): {GIT_TAG}\n')
 
 # now, copy the staged files into each os's bootstrap folder's install_data directory
 for osBootStrapPath in glob.glob(f'{bootstrap_copy_folder}/*/'):
