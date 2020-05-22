@@ -67,7 +67,12 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: windows-loader-exe
-          path: /tmp/07th-Mod.Installer.Windows.exe
+          path: ./07th-Mod.Installer.Windows.exe
+
+      # Display the current folder structure
+      - name: Display structure of downloaded files 1
+        run: ls -R
+        working-directory: .
 
       # Publish a release
       # For more info on options see: https://github.com/softprops/action-gh-release
@@ -78,11 +83,16 @@ jobs:
           files: |
             travis_installer_output/07th-Mod.Installer.mac.zip
             travis_installer_output/07th-Mod.Installer.linux.tar.gz
-            /tmp/07th-Mod.Installer.Windows.exe
+            ./07th-Mod.Installer.Windows.exe
           body_path: github_actions_changelog_template.txt
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Display the current folder structure
+      - name: Display structure of downloaded files 2
+        run: ls -R
+        working-directory: .
 
       # Install Dependencies (no dependencies require at the moment)
   #    - name: Install dependencies
