@@ -36,58 +36,20 @@ jobs:
       - name: Run Deploy Script
         run: python travis_build_script.py
 
-      # Upload Artifact
-      - name: Upload Windows Build
-        uses: actions/upload-artifact@v1
+      # Cache cargo files to speed up future Rust builds
+      # This follows the example at https://github.com/actions/cache
+      - name: Cache cargo registry
+        uses: actions/cache@v1
         with:
-          name: windows-loader-exe
-          path: travis_installer_output/07th-Mod.Installer.Windows.exe
-
-  # Linux/Mac Build
-  linux_mac_build:
-    name: Linux and Mac Build
-    needs: windows_build
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.8]
-
-    steps:
-      # Download the repository
-      - uses: actions/checkout@v2
-
-      # Setup Python
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v1
         with:
-          python-version: ${{ matrix.python-version }}
-
-      # Run JSON Validation script
-      - name: Validate JSON
-        run: bash travis_validate_json.sh
-
-      # Run Python Deploy Script
-      - name: Run Deploy Script
-        run: python travis_build_script.py
-
-      # Download windows .exe artifact
-      - name: Download Windows .exe artifact
-        uses: actions/download-artifact@v1
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v1
         with:
-          name: windows-loader-exe
-          path: travis_installer_output
-
-      # Publish a release
-      # For more info on options see: https://github.com/softprops/action-gh-release
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/') # only publish tagged commits
-        with:
-          files: |
-            travis_installer_output/07th-Mod.Installer.mac.zip
-            travis_installer_output/07th-Mod.Installer.linux.tar.gz
-            travis_installer_output/07th-Mod.Installer.Windows.exe
-          body_path: github_actions_changelog_template.txt
-          draft: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: install_loader/target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
